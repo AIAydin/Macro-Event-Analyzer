@@ -474,10 +474,15 @@ def filter_events_table(event_type):
     return events.head(15).to_dict('records')
 
 
+server = app.server  # Expose server for deployment
+
 if __name__ == '__main__':
+    import os
+    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
+    port = int(os.environ.get('PORT', 8050))
     print("\n" + "="*60)
     print("  MACRO EVENT IMPACT TRACKER")
-    print("  Starting server at http://127.0.0.1:8050")
+    print(f"  Starting server at http://0.0.0.0:{port}")
     print("="*60 + "\n")
-    app.run(debug=True, host='127.0.0.1', port=8050)
+    app.run(debug=debug, host='0.0.0.0', port=port)
 
