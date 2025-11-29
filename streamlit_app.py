@@ -27,16 +27,26 @@ st.markdown("""
     .stSelectbox > div > div {
         background-color: #21262d;
     }
-    .stDataFrame {
-        background-color: #161b22;
-    }
     div[data-testid="metric-container"] {
         background-color: #21262d;
         border-radius: 8px;
-        padding: 12px;
+        padding: 16px;
+    }
+    div[data-testid="metric-container"] label {
+        font-size: 14px !important;
+        color: #8b949e !important;
+    }
+    div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+        font-size: 28px !important;
     }
     .block-container {
         padding-top: 2rem;
+    }
+    h1, h2, h3, .stSubheader {
+        color: #f0f6fc !important;
+    }
+    p, span, label {
+        color: #c9d1d9 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -45,10 +55,11 @@ st.markdown("""
 DARK_LAYOUT = {
     'paper_bgcolor': '#161b22',
     'plot_bgcolor': '#161b22',
-    'font': {'color': '#f0f6fc'},
-    'xaxis': {'gridcolor': '#30363d', 'linecolor': '#30363d'},
-    'yaxis': {'gridcolor': '#30363d', 'linecolor': '#30363d'},
-    'margin': {'l': 50, 'r': 30, 't': 40, 'b': 40},
+    'font': {'color': '#f0f6fc', 'size': 12},
+    'title': {'font': {'color': '#f0f6fc', 'size': 16}},
+    'xaxis': {'gridcolor': '#30363d', 'linecolor': '#30363d', 'tickfont': {'color': '#c9d1d9', 'size': 11}},
+    'yaxis': {'gridcolor': '#30363d', 'linecolor': '#30363d', 'tickfont': {'color': '#c9d1d9', 'size': 11}},
+    'margin': {'l': 60, 'r': 40, 't': 50, 'b': 60},
 }
 
 COLORS = {'positive': '#3fb950', 'negative': '#f85149'}
@@ -165,8 +176,14 @@ if selected_idx is not None:
                 y_pad = (y_max - y_min) * 0.15
                 fig.update_yaxes(range=[y_min - y_pad, y_max + y_pad])
 
-            fig.update_layout(**DARK_LAYOUT, title=f"{assets.get(selected_ticker, selected_ticker)}",
-                            showlegend=False, xaxis_rangeslider_visible=False)
+            fig.update_layout(
+                **DARK_LAYOUT,
+                title=dict(text=assets.get(selected_ticker, selected_ticker), font=dict(size=16, color='#f0f6fc')),
+                showlegend=False,
+                xaxis_rangeslider_visible=False,
+                xaxis=dict(tickfont=dict(color='#c9d1d9', size=11)),
+                yaxis=dict(tickfont=dict(color='#c9d1d9', size=11))
+            )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No price data available for this event")
@@ -185,9 +202,14 @@ if selected_idx is not None:
                 x=cat_avg['Category'], y=cat_avg[time_window],
                 marker_color=colors,
                 text=[f"{v:+.2f}%" for v in cat_avg[time_window]],
-                textposition='outside', textfont=dict(color='#f0f6fc')
+                textposition='outside', textfont=dict(color='#f0f6fc', size=13)
             ))
             fig.update_layout(**DARK_LAYOUT, title=f"Avg {time_window} Return", showlegend=False)
+            # Add more padding for text labels
+            y_max = cat_avg[time_window].max()
+            y_min = cat_avg[time_window].min()
+            y_range = max(abs(y_max), abs(y_min)) * 1.4
+            fig.update_yaxes(range=[-y_range if y_min < 0 else 0, y_range])
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No reaction data available")
@@ -205,10 +227,19 @@ if selected_idx is not None:
                 z=z_values, x=time_cols, y=y_labels,
                 colorscale=[[0, '#f85149'], [0.5, '#21262d'], [1, '#3fb950']],
                 zmid=0, text=np.round(z_values, 2), texttemplate='%{text:.2f}%',
-                textfont={"size": 10},
-                colorbar=dict(title=dict(text='Return %', font=dict(color='#f0f6fc')))
+                textfont={"size": 12, "color": "#ffffff"},
+                hovertemplate='%{y}<br>%{x}: %{z:.2f}%<extra></extra>',
+                colorbar=dict(
+                    title=dict(text='Return %', font=dict(color='#f0f6fc', size=12)),
+                    tickfont=dict(color='#f0f6fc', size=11)
+                )
             ))
-            fig.update_layout(**DARK_LAYOUT, height=max(400, len(y_labels) * 35))
+            fig.update_layout(
+                **DARK_LAYOUT,
+                height=max(450, len(y_labels) * 40),
+                yaxis=dict(tickfont=dict(color='#f0f6fc', size=12)),
+                xaxis=dict(tickfont=dict(color='#f0f6fc', size=12), side='bottom')
+            )
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No heatmap data available")
