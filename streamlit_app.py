@@ -177,13 +177,16 @@ if selected_idx is not None:
                 fig.update_yaxes(range=[y_min - y_pad, y_max + y_pad])
 
             fig.update_layout(
-                **DARK_LAYOUT,
+                paper_bgcolor='#161b22',
+                plot_bgcolor='#161b22',
+                font=dict(color='#f0f6fc', size=12),
                 title=dict(text=assets.get(selected_ticker, selected_ticker), font=dict(size=16, color='#f0f6fc')),
                 showlegend=False,
                 xaxis_rangeslider_visible=False,
-                xaxis=dict(tickfont=dict(color='#c9d1d9', size=11)),
-                yaxis=dict(tickfont=dict(color='#c9d1d9', size=11))
+                margin=dict(l=60, r=40, t=50, b=60)
             )
+            fig.update_xaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9', size=11))
+            fig.update_yaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9', size=11))
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No price data available for this event")
@@ -235,11 +238,14 @@ if selected_idx is not None:
                 )
             ))
             fig.update_layout(
-                **DARK_LAYOUT,
+                paper_bgcolor='#161b22',
+                plot_bgcolor='#161b22',
+                font=dict(color='#f0f6fc', size=12),
                 height=max(450, len(y_labels) * 40),
-                yaxis=dict(tickfont=dict(color='#f0f6fc', size=12)),
-                xaxis=dict(tickfont=dict(color='#f0f6fc', size=12), side='bottom')
+                margin=dict(l=120, r=60, t=50, b=60)
             )
+            fig.update_xaxes(tickfont=dict(color='#f0f6fc', size=12), side='bottom')
+            fig.update_yaxes(tickfont=dict(color='#f0f6fc', size=12))
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No heatmap data available")
