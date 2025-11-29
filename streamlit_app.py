@@ -24,6 +24,21 @@ st.markdown("""
     .stApp {
         background-color: #0d1117;
     }
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background-color: #161b22;
+    }
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] .stMarkdown {
+        color: #f0f6fc !important;
+    }
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span {
+        color: #c9d1d9 !important;
+    }
     .stSelectbox > div > div {
         background-color: #21262d;
     }
