@@ -56,7 +56,7 @@ st.markdown("""
     }
     div[data-testid="metric-container"] label {
         font-size: 14px !important;
-        color: #8b949e !important;
+        color: #ffffff !important;
     }
     div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
         font-size: 28px !important;
