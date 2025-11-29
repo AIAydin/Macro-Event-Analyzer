@@ -207,7 +207,16 @@ if selected_idx is not None:
                 text=[f"{v:+.2f}%" for v in cat_avg[time_window]],
                 textposition='outside', textfont=dict(color='#f0f6fc', size=13)
             ))
-            fig.update_layout(**DARK_LAYOUT, title=f"Avg {time_window} Return", showlegend=False)
+            fig.update_layout(
+                paper_bgcolor='#161b22',
+                plot_bgcolor='#161b22',
+                font=dict(color='#f0f6fc', size=12),
+                title=dict(text=f"Avg {time_window} Return", font=dict(color='#f0f6fc', size=16)),
+                showlegend=False,
+                margin=dict(l=60, r=40, t=50, b=60)
+            )
+            fig.update_xaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9', size=11))
+            fig.update_yaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9', size=11))
             # Add more padding for text labels
             y_max = cat_avg[time_window].max()
             y_min = cat_avg[time_window].min()
