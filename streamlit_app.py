@@ -54,7 +54,9 @@ st.markdown("""
         border-radius: 8px;
         padding: 16px;
     }
-    div[data-testid="metric-container"] label {
+    div[data-testid="metric-container"] label,
+    [data-testid="stMetricLabel"] label,
+    [data-testid="stMetricLabel"] p {
         font-size: 14px !important;
         color: #ffffff !important;
     }
