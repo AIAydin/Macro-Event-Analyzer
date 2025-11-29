@@ -41,6 +41,13 @@ st.markdown("""
     }
     .stSelectbox > div > div {
         background-color: #21262d;
+        color: #ffffff !important;
+    }
+    .stSelectbox > div > div > div {
+        color: #ffffff !important;
+    }
+    .stSelectbox [data-baseweb="select"] span {
+        color: #ffffff !important;
     }
     div[data-testid="metric-container"] {
         background-color: #21262d;
