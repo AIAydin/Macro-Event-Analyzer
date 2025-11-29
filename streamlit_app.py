@@ -70,6 +70,27 @@ st.markdown("""
     p, span, label {
         color: #c9d1d9 !important;
     }
+    /* Dataframe styling */
+    .stDataFrame {
+        background-color: #0d1117;
+    }
+    .stDataFrame [data-testid="stDataFrameResizable"] {
+        background-color: #0d1117;
+    }
+    .stDataFrame thead tr th {
+        background-color: #161b22 !important;
+        color: #8b949e !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+    }
+    .stDataFrame tbody tr td {
+        background-color: #0d1117 !important;
+        color: #f0f6fc !important;
+        font-size: 14px !important;
+    }
+    .stDataFrame tbody tr:hover td {
+        background-color: #161b22 !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
