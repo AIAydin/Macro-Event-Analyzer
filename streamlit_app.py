@@ -70,33 +70,26 @@ st.markdown("""
     p, span, label {
         color: #c9d1d9 !important;
     }
-    /* Metric label styling */
-    div[data-testid="metric-container"] label {
-        color: #ffffff !important;
+    /* Dataframe styling */
+    .stDataFrame {
+        background-color: #0d1117;
+    }
+    .stDataFrame [data-testid="stDataFrameResizable"] {
+        background-color: #0d1117;
+    }
+    .stDataFrame thead tr th {
+        background-color: #161b22 !important;
+        color: #8b949e !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+    }
+    .stDataFrame tbody tr td {
+        background-color: #0d1117 !important;
+        color: #f0f6fc !important;
         font-size: 14px !important;
     }
-    /* Dataframe dark theme - target glide-data-grid */
-    .stDataFrame,
-    .stDataFrame > div,
-    [data-testid="stDataFrame"],
-    [data-testid="stDataFrame"] > div {
-        background-color: #0d1117 !important;
-    }
-    .dvn-scroller {
-        background-color: #0d1117 !important;
-    }
-    .dvn-underlay {
-        background-color: #0d1117 !important;
-    }
-    /* Glide data grid cells */
-    [data-testid="glideDataEditor"] {
-        --gdg-bg-cell: #0d1117 !important;
-        --gdg-bg-header: #161b22 !important;
-        --gdg-bg-header-has-focus: #21262d !important;
-        --gdg-text-dark: #f0f6fc !important;
-        --gdg-text-header: #c9d1d9 !important;
-        --gdg-border-color: #30363d !important;
-        --gdg-accent-color: #58a6ff !important;
+    .stDataFrame tbody tr:hover td {
+        background-color: #161b22 !important;
     }
 </style>
 """, unsafe_allow_html=True)
