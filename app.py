@@ -15,11 +15,12 @@ st.set_page_config(
     page_title="Macro Event Tracker",
     page_icon="📈",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Dark theme CSS
-st.markdown("""
+st.markdown(
+    """
 <style>
     .stApp {
         background-color: #0d1117;
@@ -83,20 +84,24 @@ st.markdown("""
         background-color: #161b22 !important;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Chart theme
 DARK_LAYOUT = {
-    'paper_bgcolor': '#161b22',
-    'plot_bgcolor': '#161b22',
-    'font': {'color': '#f0f6fc', 'size': 12},
+    "paper_bgcolor": "#161b22",
+    "plot_bgcolor": "#161b22",
+    "font": {"color": "#f0f6fc", "size": 12},
 }
-COLORS = {'positive': '#3fb950', 'negative': '#f85149'}
+COLORS = {"positive": "#3fb950", "negative": "#f85149"}
+
 
 # Initialize fetchers
 @st.cache_resource
 def get_fetchers():
     return EconomicEventsFetcher(), MarketDataFetcher()
+
 
 events_fetcher, market_fetcher = get_fetchers()
 
@@ -127,49 +132,47 @@ categories = market_fetcher.get_asset_categories()
 selected_category = st.sidebar.selectbox("Asset Category", categories)
 
 assets = market_fetcher.get_assets_by_category(selected_category)
-selected_ticker = st.sidebar.selectbox("Ticker", list(assets.keys()), 
-                                        format_func=lambda x: f"{x} - {assets[x]}")
+selected_ticker = st.sidebar.selectbox(
+    "Ticker", list(assets.keys()), format_func=lambda x: f"{x} - {assets[x]}"
+)
 
-time_windows = {'1 minute': '1m', '5 minutes': '5m', '15 minutes': '15m', 
-                '30 minutes': '30m', '1 hour': '60m', '4 hours': '240m'}
+time_windows = {
+    "1 minute": "1m",
+    "5 minutes": "5m",
+    "15 minutes": "15m",
+    "30 minutes": "30m",
+    "1 hour": "60m",
+    "4 hours": "240m",
+}
 selected_window = st.sidebar.selectbox("Time Window", list(time_windows.keys()))
 time_window = time_windows[selected_window]
 
 # Get events with date filter
 events = events_fetcher.get_events(
-    start_date=start_date.strftime('%Y-%m-%d'),
-    end_date=end_date.strftime('%Y-%m-%d'),
-    event_types=[selected_event_type]
+    start_date=start_date.strftime("%Y-%m-%d"),
+    end_date=end_date.strftime("%Y-%m-%d"),
+    event_types=[selected_event_type],
 )
 
 # Events table
 st.subheader("Recent Economic Events")
 
-# Option to use custom date or select from events
-use_custom_date = st.checkbox("Use custom date/time instead of selecting an event")
+if len(events) > 0:
+    events_display = events[
+        ["date", "event", "actual", "forecast", "previous", "surprise"]
+    ].head(10)
+    events_display["date"] = events_display["date"].dt.strftime("%Y-%m-%d %H:%M")
 
-if use_custom_date:
-    st.info("Enter a custom date and time to analyze market reactions")
-    date_col, time_col = st.columns(2)
-    with date_col:
-        custom_date = st.date_input("Date", value=datetime.now().date())
-    with time_col:
-        custom_time = st.time_input("Time (ET)", value=datetime.strptime("08:30", "%H:%M").time())
-    
-    event_time = datetime.combine(custom_date, custom_time)
-    st.write(f"**Analyzing:** {event_time.strftime('%Y-%m-%d %H:%M')} ET")
-
-elif len(events) > 0:
-    events_display = events[['date', 'event', 'actual', 'forecast', 'previous', 'surprise']].head(10)
-    events_display['date'] = events_display['date'].dt.strftime('%Y-%m-%d %H:%M')
-
-    selected_idx = st.selectbox("Select Event", range(len(events_display)), 
-                                format_func=lambda i: f"{events_display.iloc[i]['date']} - {events_display.iloc[i]['event']} (Surprise: {events_display.iloc[i]['surprise']:.2f})")
+    selected_idx = st.selectbox(
+        "Select Event",
+        range(len(events_display)),
+        format_func=lambda i: f"{events_display.iloc[i]['date']} - {events_display.iloc[i]['event']} (Surprise: {events_display.iloc[i]['surprise']:.2f})",
+    )
 
     st.dataframe(events_display, use_container_width=True, hide_index=True)
 
     selected_event = events.iloc[selected_idx]
-    event_time = pd.to_datetime(selected_event['date'])
+    event_time = pd.to_datetime(selected_event["date"])
 
 else:
     st.warning("No events found. Try adjusting the date range or use a custom date.")
@@ -179,18 +182,25 @@ else:
 if event_time is not None:
     # Metrics
     st.subheader("Quick Metrics")
-    
+
     metrics_data = {}
-    for ticker, name in [('SPY', 'SPY'), ('DX-Y.NYB', 'Dollar'), ('^TNX', '10Y'), ('^VIX', 'VIX')]:
+    for ticker, name in [
+        ("SPY", "SPY"),
+        ("DX-Y.NYB", "Dollar"),
+        ("^TNX", "10Y"),
+        ("^VIX", "VIX"),
+    ]:
         df = market_fetcher.fetch_intraday_data(ticker, event_time)
         if df is not None and not df.empty:
             returns = market_fetcher.calculate_returns(df, event_time)
             metrics_data[name] = returns.get(time_window, np.nan)
-    
+
     cols = st.columns(4)
     for col, (name, val) in zip(cols, metrics_data.items()):
         if not np.isnan(val):
-            col.metric(name, f"{val:+.2f}%", delta_color="normal" if val >= 0 else "inverse")
+            col.metric(
+                name, f"{val:+.2f}%", delta_color="normal" if val >= 0 else "inverse"
+            )
         else:
             col.metric(name, "--")
 
@@ -200,26 +210,42 @@ if event_time is not None:
     with chart_col1:
         st.subheader("Price Action Around Event")
 
-        window_minutes = int(time_window.replace('m', ''))
+        window_minutes = int(time_window.replace("m", ""))
         hours_after = max(1, window_minutes // 60 + 1)
 
-        df = market_fetcher.fetch_intraday_data(selected_ticker, event_time, hours_before=1, hours_after=hours_after)
+        df = market_fetcher.fetch_intraday_data(
+            selected_ticker, event_time, hours_before=1, hours_after=hours_after
+        )
 
         if df is not None and not df.empty:
             fig = go.Figure()
 
-            if all(col in df.columns for col in ['Open', 'High', 'Low', 'Close']):
-                fig.add_trace(go.Candlestick(
-                    x=df.index, open=df['Open'], high=df['High'],
-                    low=df['Low'], close=df['Close'],
-                    increasing_line_color='#3fb950', decreasing_line_color='#f85149',
-                ))
+            if all(col in df.columns for col in ["Open", "High", "Low", "Close"]):
+                fig.add_trace(
+                    go.Candlestick(
+                        x=df.index,
+                        open=df["Open"],
+                        high=df["High"],
+                        low=df["Low"],
+                        close=df["Close"],
+                        increasing_line_color="#3fb950",
+                        decreasing_line_color="#f85149",
+                    )
+                )
 
-            fig.add_vline(x=event_time, line_dash="dash", line_color="#a371f7", line_width=2)
-            fig.add_annotation(x=event_time, y=1.05, yref='paper', text="Event",
-                             showarrow=False, font=dict(color='#a371f7'))
+            fig.add_vline(
+                x=event_time, line_dash="dash", line_color="#a371f7", line_width=2
+            )
+            fig.add_annotation(
+                x=event_time,
+                y=1.05,
+                yref="paper",
+                text="Event",
+                showarrow=False,
+                font=dict(color="#a371f7"),
+            )
 
-            tz = pytz.timezone('America/New_York')
+            tz = pytz.timezone("America/New_York")
             if event_time.tzinfo is None:
                 event_time_tz = tz.localize(event_time)
             else:
@@ -231,19 +257,28 @@ if event_time is not None:
 
             visible_df = df[(df.index >= x_start) & (df.index <= x_end)]
             if not visible_df.empty:
-                y_min, y_max = visible_df['Low'].min(), visible_df['High'].max()
+                y_min, y_max = visible_df["Low"].min(), visible_df["High"].max()
                 y_pad = (y_max - y_min) * 0.15
                 fig.update_yaxes(range=[y_min - y_pad, y_max + y_pad])
 
             fig.update_layout(
-                paper_bgcolor='#161b22', plot_bgcolor='#161b22',
-                font=dict(color='#f0f6fc', size=12),
-                title=dict(text=assets.get(selected_ticker, selected_ticker), font=dict(size=16, color='#f0f6fc')),
-                showlegend=False, xaxis_rangeslider_visible=False,
-                margin=dict(l=60, r=40, t=50, b=60)
+                paper_bgcolor="#161b22",
+                plot_bgcolor="#161b22",
+                font=dict(color="#f0f6fc", size=12),
+                title=dict(
+                    text=assets.get(selected_ticker, selected_ticker),
+                    font=dict(size=16, color="#f0f6fc"),
+                ),
+                showlegend=False,
+                xaxis_rangeslider_visible=False,
+                margin=dict(l=60, r=40, t=50, b=60),
             )
-            fig.update_xaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9'))
-            fig.update_yaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9'))
+            fig.update_xaxes(
+                gridcolor="#30363d", linecolor="#30363d", tickfont=dict(color="#c9d1d9")
+            )
+            fig.update_yaxes(
+                gridcolor="#30363d", linecolor="#30363d", tickfont=dict(color="#c9d1d9")
+            )
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("No price data available for this event")
@@ -254,23 +289,39 @@ if event_time is not None:
         reactions = market_fetcher.get_multi_asset_reaction(event_time)
 
         if not reactions.empty and time_window in reactions.columns:
-            cat_avg = reactions.groupby('Category')[time_window].mean().reset_index()
-            colors = [COLORS['positive'] if v >= 0 else COLORS['negative'] for v in cat_avg[time_window]]
+            cat_avg = reactions.groupby("Category")[time_window].mean().reset_index()
+            colors = [
+                COLORS["positive"] if v >= 0 else COLORS["negative"]
+                for v in cat_avg[time_window]
+            ]
 
-            fig = go.Figure(go.Bar(
-                x=cat_avg['Category'], y=cat_avg[time_window],
-                marker_color=colors,
-                text=[f"{v:+.2f}%" for v in cat_avg[time_window]],
-                textposition='outside', textfont=dict(color='#f0f6fc', size=13)
-            ))
-            fig.update_layout(
-                paper_bgcolor='#161b22', plot_bgcolor='#161b22',
-                font=dict(color='#f0f6fc', size=12),
-                title=dict(text=f"Avg {time_window} Return", font=dict(color='#f0f6fc', size=16)),
-                showlegend=False, margin=dict(l=60, r=40, t=50, b=60)
+            fig = go.Figure(
+                go.Bar(
+                    x=cat_avg["Category"],
+                    y=cat_avg[time_window],
+                    marker_color=colors,
+                    text=[f"{v:+.2f}%" for v in cat_avg[time_window]],
+                    textposition="outside",
+                    textfont=dict(color="#f0f6fc", size=13),
+                )
             )
-            fig.update_xaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9'))
-            fig.update_yaxes(gridcolor='#30363d', linecolor='#30363d', tickfont=dict(color='#c9d1d9'))
+            fig.update_layout(
+                paper_bgcolor="#161b22",
+                plot_bgcolor="#161b22",
+                font=dict(color="#f0f6fc", size=12),
+                title=dict(
+                    text=f"Avg {time_window} Return",
+                    font=dict(color="#f0f6fc", size=16),
+                ),
+                showlegend=False,
+                margin=dict(l=60, r=40, t=50, b=60),
+            )
+            fig.update_xaxes(
+                gridcolor="#30363d", linecolor="#30363d", tickfont=dict(color="#c9d1d9")
+            )
+            fig.update_yaxes(
+                gridcolor="#30363d", linecolor="#30363d", tickfont=dict(color="#c9d1d9")
+            )
             y_max = cat_avg[time_window].max()
             y_min = cat_avg[time_window].min()
             y_range = max(abs(y_max), abs(y_min)) * 1.4
@@ -283,29 +334,36 @@ if event_time is not None:
     st.subheader("Multi-Asset Reaction Heatmap")
 
     if not reactions.empty:
-        time_cols = [col for col in reactions.columns if col.endswith('m')]
+        time_cols = [col for col in reactions.columns if col.endswith("m")]
         if time_cols:
             z_values = reactions[time_cols].values
-            y_labels = reactions['Name'].tolist()
+            y_labels = reactions["Name"].tolist()
 
-            fig = go.Figure(go.Heatmap(
-                z=z_values, x=time_cols, y=y_labels,
-                colorscale=[[0, '#f85149'], [0.5, '#21262d'], [1, '#3fb950']],
-                zmid=0, text=np.round(z_values, 2), texttemplate='%{text:.2f}%',
-                textfont={"size": 12, "color": "#ffffff"},
-                colorbar=dict(
-                    title=dict(text='Return %', font=dict(color='#f0f6fc')),
-                    tickfont=dict(color='#f0f6fc')
+            fig = go.Figure(
+                go.Heatmap(
+                    z=z_values,
+                    x=time_cols,
+                    y=y_labels,
+                    colorscale=[[0, "#f85149"], [0.5, "#21262d"], [1, "#3fb950"]],
+                    zmid=0,
+                    text=np.round(z_values, 2),
+                    texttemplate="%{text:.2f}%",
+                    textfont={"size": 12, "color": "#ffffff"},
+                    colorbar=dict(
+                        title=dict(text="Return %", font=dict(color="#f0f6fc")),
+                        tickfont=dict(color="#f0f6fc"),
+                    ),
                 )
-            ))
-            fig.update_layout(
-                paper_bgcolor='#161b22', plot_bgcolor='#161b22',
-                font=dict(color='#f0f6fc', size=12),
-                height=max(450, len(y_labels) * 40),
-                margin=dict(l=120, r=60, t=50, b=60)
             )
-            fig.update_xaxes(tickfont=dict(color='#f0f6fc', size=12), side='bottom')
-            fig.update_yaxes(tickfont=dict(color='#f0f6fc', size=12))
+            fig.update_layout(
+                paper_bgcolor="#161b22",
+                plot_bgcolor="#161b22",
+                font=dict(color="#f0f6fc", size=12),
+                height=max(450, len(y_labels) * 40),
+                margin=dict(l=120, r=60, t=50, b=60),
+            )
+            fig.update_xaxes(tickfont=dict(color="#f0f6fc", size=12), side="bottom")
+            fig.update_yaxes(tickfont=dict(color="#f0f6fc", size=12))
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No heatmap data available")
