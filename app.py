@@ -107,6 +107,19 @@ st.caption("Real-time analysis of market reactions to economic data releases")
 # Sidebar filters
 st.sidebar.header("Filters")
 
+# Date range picker
+st.sidebar.subheader("Date Range")
+today = datetime.now()
+default_start = today - timedelta(days=180)  # 6 months back
+
+col1, col2 = st.sidebar.columns(2)
+with col1:
+    start_date = st.date_input("From", value=default_start, max_value=today)
+with col2:
+    end_date = st.date_input("To", value=today, max_value=today)
+
+st.sidebar.divider()
+
 event_types = events_fetcher.get_event_types()
 selected_event_type = st.sidebar.selectbox("Event Type", sorted(event_types))
 
@@ -122,8 +135,12 @@ time_windows = {'1 minute': '1m', '5 minutes': '5m', '15 minutes': '15m',
 selected_window = st.sidebar.selectbox("Time Window", list(time_windows.keys()))
 time_window = time_windows[selected_window]
 
-# Get events
-events = events_fetcher.get_events(event_types=[selected_event_type])
+# Get events with date filter
+events = events_fetcher.get_events(
+    start_date=start_date.strftime('%Y-%m-%d'),
+    end_date=end_date.strftime('%Y-%m-%d'),
+    event_types=[selected_event_type]
+)
 
 # Events table
 st.subheader("Recent Economic Events")
