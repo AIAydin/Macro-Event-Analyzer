@@ -145,7 +145,21 @@ events = events_fetcher.get_events(
 # Events table
 st.subheader("Recent Economic Events")
 
-if len(events) > 0:
+# Option to use custom date or select from events
+use_custom_date = st.checkbox("Use custom date/time instead of selecting an event")
+
+if use_custom_date:
+    st.info("Enter a custom date and time to analyze market reactions")
+    date_col, time_col = st.columns(2)
+    with date_col:
+        custom_date = st.date_input("Date", value=datetime.now().date())
+    with time_col:
+        custom_time = st.time_input("Time (ET)", value=datetime.strptime("08:30", "%H:%M").time())
+    
+    event_time = datetime.combine(custom_date, custom_time)
+    st.write(f"**Analyzing:** {event_time.strftime('%Y-%m-%d %H:%M')} ET")
+
+elif len(events) > 0:
     events_display = events[['date', 'event', 'actual', 'forecast', 'previous', 'surprise']].head(10)
     events_display['date'] = events_display['date'].dt.strftime('%Y-%m-%d %H:%M')
 
@@ -156,7 +170,13 @@ if len(events) > 0:
 
     selected_event = events.iloc[selected_idx]
     event_time = pd.to_datetime(selected_event['date'])
-    
+
+else:
+    st.warning("No events found. Try adjusting the date range or use a custom date.")
+    event_time = None
+
+# Only show metrics and charts if we have an event_time
+if event_time is not None:
     # Metrics
     st.subheader("Quick Metrics")
     
@@ -289,5 +309,3 @@ if len(events) > 0:
             st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No heatmap data available")
-else:
-    st.warning("No events found. Make sure FRED_API_KEY is set for live data.")
