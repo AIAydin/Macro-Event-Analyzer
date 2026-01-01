@@ -174,22 +174,50 @@ class EconomicEventsFetcher:
         return events
 
     def _generate_fallback_events(self) -> List[Dict]:
-        """Generate fallback events if API fails."""
+        """Generate fallback events based on current date."""
         events = []
         now = datetime.now(self.tz)
+        current_year = now.year
+        current_month = now.month
         
         event_templates = [
-            ('CPI', '08:30:00', 2.8, 0.3),
-            ('NFP', '08:30:00', 180, 50),
-            ('ISM PMI', '10:00:00', 48.5, 2),
-            ('FOMC Rate Decision', '14:00:00', 4.5, 0.25),
-            ('Unemployment Rate', '08:30:00', 4.1, 0.2),
+            ('CPI', '08:30:00', 2.8, 0.3, 10),       # ~10th of month
+            ('NFP', '08:30:00', 180, 50, 5),         # ~5th (first Friday)
+            ('ISM PMI', '10:00:00', 48.5, 2, 1),     # ~1st of month
+            ('FOMC Rate Decision', '14:00:00', 4.5, 0.25, 15),  # ~15th
+            ('Unemployment Rate', '08:30:00', 4.1, 0.2, 5),
+            ('Retail Sales', '08:30:00', 0.5, 0.3, 14),
+            ('GDP', '08:30:00', 2.5, 0.5, 25),
         ]
         
-        for months_ago in range(6):
-            event_date = now - timedelta(days=months_ago * 30 + 10)
+        # Generate events for the past 12 months
+        for months_ago in range(12):
+            # Calculate the target month/year
+            month = current_month - months_ago
+            year = current_year
+            while month <= 0:
+                month += 12
+                year -= 1
             
-            for event_name, time_str, base_val, volatility in event_templates:
+            for event_name, time_str, base_val, volatility, day in event_templates:
+                # Skip FOMC for months without meetings
+                if event_name == 'FOMC Rate Decision' and month not in [1, 3, 5, 6, 7, 9, 11, 12]:
+                    continue
+                
+                # Skip GDP for non-quarterly months
+                if event_name == 'GDP' and month not in [1, 4, 7, 10]:
+                    continue
+                
+                # Ensure day is valid for the month
+                try:
+                    event_date = datetime(year, month, min(day, 28))
+                except ValueError:
+                    event_date = datetime(year, month, 15)
+                
+                # Only include past events (not future)
+                if event_date > now.replace(tzinfo=None):
+                    continue
+                
                 actual = round(base_val + np.random.uniform(-volatility, volatility), 2)
                 forecast = round(base_val + np.random.uniform(-volatility/2, volatility/2), 2)
                 previous = round(base_val + np.random.uniform(-volatility, volatility), 2)
